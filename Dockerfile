@@ -1,4 +1,5 @@
-FROM php:8.2-apache
-COPY gw.php /var/www/html/gw.php
-COPY gw.php /var/www/html/index.php
-EXPOSE 80
+FROM python:3.10-slim
+WORKDIR /app
+COPY server.py .
+EXPOSE 8080
+CMD ["python", "server.py"]

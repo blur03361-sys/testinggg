@@ -1,6 +1,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import base64
+import os
 
 def encode_varint(val):
     buf = bytearray()
@@ -18,6 +19,12 @@ def encode_pb_string(field_num, s):
     return encode_varint(tag) + encode_varint(len(b_s)) + b_s
 
 class GatewayHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({"status": "online"}).encode('utf-8'))
+
     def do_POST(self):
         content_len = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_len).decode('utf-8') if content_len > 0 else '{}'
@@ -41,9 +48,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
 
 if __name__ == '__main__':
-    print("[+] Vanguard Gateway Relay running locally on http://127.0.0.1:8080/gw.php")
-    server = HTTPServer(('127.0.0.1', 8080), GatewayHandler)
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[*] Server stopped.")
+    port = int(os.environ.get('PORT', 8080))
+    print(f"[+] Gateway Server listening on 0.0.0.0:{port}")
+    server = HTTPServer(('0.0.0.0', port), GatewayHandler)
+    server.serve_forever()
